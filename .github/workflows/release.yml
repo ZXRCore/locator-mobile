@@ -12,9 +12,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # Pin the same Flutter as local dev so Gradle 8.9 in the wrapper matches
+      # (newer Flutter demands Gradle >= 8.14 and breaks the build on CI).
       - uses: subosito/flutter-action@v2
         with:
+          flutter-version: 3.44.6
           channel: stable
+          cache: true
 
       # google-services.json is gitignored — inject it from a repo secret.
       - name: Restore google-services.json
