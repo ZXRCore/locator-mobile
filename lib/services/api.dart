@@ -4,7 +4,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 // Single source of truth for the server address (UI + headless isolate).
 // Real device on same wifi -> PC's LAN IP.
-const kApiBase = 'http://10.137.52.43:8000';
+const kApiBase = 'https://locator.zxr.sh';
 
 /// Thin client for the 0xMap FastAPI backend.
 /// Set [base] to your server (use 10.0.2.2 for Android emulator -> host).
