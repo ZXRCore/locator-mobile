@@ -1,10 +1,15 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 // Single source of truth for the server address (UI + headless isolate).
 // Real device on same wifi -> PC's LAN IP.
 const kApiBase = 'https://locator.zxr.sh';
+
+// Flips to true when the server rejects our token (401) — e.g. this device was
+// evicted by a login elsewhere. The app root listens and returns to login.
+final sessionExpired = ValueNotifier<bool>(false);
 
 /// Thin client for the 0xMap FastAPI backend.
 /// Set [base] to your server (use 10.0.2.2 for Android emulator -> host).
@@ -43,6 +48,16 @@ class Api {
     await _store.delete(key: 'token');
   }
 
+  // Detect an evicted/expired session (401 on an authenticated call) and signal
+  // the UI to return to login. Call on responses from authed requests.
+  void _check401(int status) {
+    if (status == 401) {
+      _token = null;
+      _store.delete(key: 'token');
+      sessionExpired.value = true;
+    }
+  }
+
   Future<Map<String, dynamic>> register(String username, String password) async {
     final r = await http.post(Uri.parse('$base/auth/register'),
         headers: {'Content-Type': 'application/json'},
@@ -69,11 +84,15 @@ class Api {
 
   Future<Map<String, dynamic>> me() async {
     final r = await http.get(Uri.parse('$base/me'), headers: await _authHeaders());
+    _check401(r.statusCode);
+    if (r.statusCode != 200) return {};
     return jsonDecode(r.body);
   }
 
   Future<List<dynamic>> friends() async {
     final r = await http.get(Uri.parse('$base/friends'), headers: await _authHeaders());
+    _check401(r.statusCode);
+    if (r.statusCode != 200) return [];
     return jsonDecode(r.body);
   }
 

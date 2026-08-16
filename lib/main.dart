@@ -24,8 +24,35 @@ void main() async {
   runApp(const OxMapApp());
 }
 
-class OxMapApp extends StatelessWidget {
+final navigatorKey = GlobalKey<NavigatorState>();
+
+class OxMapApp extends StatefulWidget {
   const OxMapApp({super.key});
+  @override
+  State<OxMapApp> createState() => _OxMapAppState();
+}
+
+class _OxMapAppState extends State<OxMapApp> {
+  @override
+  void initState() {
+    super.initState();
+    // Session evicted elsewhere (401) -> drop to login screen.
+    sessionExpired.addListener(_onSessionExpired);
+  }
+
+  @override
+  void dispose() {
+    sessionExpired.removeListener(_onSessionExpired);
+    super.dispose();
+  }
+
+  void _onSessionExpired() {
+    if (!sessionExpired.value) return;
+    sessionExpired.value = false;
+    tracking.stop();
+    navigatorKey.currentState?.pushAndRemoveUntil(
+      MaterialPageRoute(builder: (_) => const LoginScreen()), (_) => false);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -33,6 +60,7 @@ class OxMapApp extends StatelessWidget {
       valueListenable: themeMode,
       builder: (_, mode, __) => MaterialApp(
         title: '0xMap',
+        navigatorKey: navigatorKey,
         theme: oxLightTheme,
         darkTheme: oxMapTheme,
         themeMode: mode,
