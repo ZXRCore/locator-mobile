@@ -1,0 +1,16 @@
+.dart_tool/
+build/
+.flutter-plugins*
+.packages
+.pub-cache/
+.pub/
+
+# Firebase — injected via GitHub secret in CI, never commit
+android/app/google-services.json
+
+# Android build noise
+android/.gradle/
+android/local.properties
+android/hs_err_pid*.log
+android/replay_pid*.log
+*.tgz
